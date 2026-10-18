@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/scale_page_route.dart';
 
 import '../services/auth_service.dart';
 import 'home_screen.dart';
@@ -43,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
       // Clear Login + Register from the back stack and go to Home.
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => HomeScreen(user: user)),
+        ScalePageRoute(page: HomeScreen(user: user)),
         (route) => false,
       );
     } on AuthException catch (e) {
