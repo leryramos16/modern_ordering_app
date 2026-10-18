@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/scale_page_route.dart';
+import 'package:shared_models/shared_models.dart';
 
 import '../services/auth_service.dart';
 import 'home_screen.dart';
@@ -64,33 +65,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Name'),
-                validator: (value) => value != null && value.trim().isNotEmpty
-                    ? null
-                    : 'Enter your name',
+                validator: Validators.name,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) => value != null && value.contains('@')
-                    ? null
-                    : 'Enter a valid email',
+                validator: Validators.email,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                validator: (value) => value != null && value.length >= 8
-                    ? null
-                    : 'At least 8 characters',
+                validator: Validators.password,
               ),
               const SizedBox(height: 16),
               if (_error != null)

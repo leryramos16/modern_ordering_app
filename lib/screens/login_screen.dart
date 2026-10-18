@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:shared_models/shared_models.dart';
 import '../services/auth_service.dart';
 import '../widgets/scale_page_route.dart';
 import 'home_screen.dart';
@@ -169,9 +169,7 @@ class _LoginScreenState extends State<LoginScreen>
               labelText: 'Email',
               prefixIcon: Icon(Icons.email_outlined),
             ),
-            validator: (value) => value != null && value.contains('@')
-                ? null
-                : 'Enter a valid email',
+            validator: Validators.email,
           ),
           const SizedBox(height: 16),
           TextFormField(

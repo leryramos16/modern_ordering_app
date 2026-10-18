@@ -4,6 +4,7 @@ import 'package:backend/auth/jwt_service.dart';
 import 'package:backend/repositories/user_repository.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:dart_frog/dart_frog.dart';
+import 'package:shared_models/shared_models.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method != HttpMethod.post) {
@@ -15,10 +16,14 @@ Future<Response> onRequest(RequestContext context) async {
   final email = (body['email'] as String? ?? '').trim().toLowerCase();
   final password = body['password'] as String? ?? '';
 
-  if (name.isEmpty || !email.contains('@') || password.length < 8) {
+  final error =
+      Validators.name(name) ??
+      Validators.email(email) ??
+      Validators.password(password);
+  if (error != null) {
     return Response.json(
       statusCode: HttpStatus.badRequest,
-      body: {'error': 'Name, valid email and password (8+ chars) required'},
+      body: {'error': error},
     );
   }
 
