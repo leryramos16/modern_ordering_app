@@ -4,5 +4,6 @@
 library;
 
 export 'src/product.dart';
+export 'src/user.dart';
 
 // TODO: Export any libraries intended for clients of this package.

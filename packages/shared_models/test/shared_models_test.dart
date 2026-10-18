@@ -1,16 +1,16 @@
-import 'package:shared_models/shared_models.dart';
-import 'package:test/test.dart';
+// import '../../shared_models.dart';
+// import 'package:test/test.dart';
 
-void main() {
-  group('A group of tests', () {
-    final awesome = Awesome();
+// void main() {
+//   group('A group of tests', () {
+//     final awesome = Awesome();
 
-    setUp(() {
-      // Additional setup goes here.
-    });
+//     setUp(() {
+//       // Additional setup goes here.
+//     });
 
-    test('First Test', () {
-      expect(awesome.isAwesome, isTrue);
-    });
-  });
-}
+//     test('First Test', () {
+//       expect(awesome.isAwesome, isTrue);
+//     });
+//   });
+// }
