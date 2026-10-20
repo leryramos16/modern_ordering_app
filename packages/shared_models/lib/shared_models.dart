@@ -6,5 +6,6 @@ library;
 export 'src/product.dart';
 export 'src/user.dart';
 export 'src/validators.dart';
+export 'src/roles.dart';
 
 // TODO: Export any libraries intended for clients of this package.
