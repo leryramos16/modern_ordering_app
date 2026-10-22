@@ -26,6 +26,30 @@ class ProductRepository {
     return _fromRow(result.first.toColumnMap());
   }
 
+  Future<Product> create({
+    required int categoryId,
+    required String name,
+    required double price,
+    String? description,
+    String? imageUrl,
+  }) async {
+    final result = await _db.execute(
+      Sql.named(
+        'INSERT INTO products (category_id, name, description, price, image_url) '
+        'VALUES (@categoryId, @name, @description, @price, @imageUrl) '
+        'RETURNING $_columns',
+      ),
+      parameters: {
+        'categoryId': categoryId,
+        'name': name,
+        'description': description,
+        'price': price,
+        'imageUrl': imageUrl,
+      },
+    );
+    return _fromRow(result.first.toColumnMap());
+  }
+
   Product _fromRow(Map<String, dynamic> row) => Product(
     id: row['id'] as int,
     categoryId: row['category_id'] as int,

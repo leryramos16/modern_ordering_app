@@ -3,6 +3,7 @@ import 'package:shared_models/shared_models.dart';
 
 import '../services/auth_service.dart';
 import 'login_screen.dart';
+import 'add_product_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, required this.user});
@@ -30,7 +31,29 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(child: Text('Welcome, ${user.name}')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Welcome, ${user.name}'),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Add product'),
+              onPressed: () async {
+                final added = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => const AddProductScreen()),
+                );
+                if (added == true && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Product added!')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

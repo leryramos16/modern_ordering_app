@@ -38,4 +38,19 @@ class Validators {
     }
     return null;
   }
+
+  static String? productName(String? value) {
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) return 'Enter product name';
+    if (name.length > 150) return 'Name is too long (max 150 characters)';
+    return null;
+  }
+
+  static String? price(String? value) {
+    final price = double.tryParse(value?.trim() ?? '');
+    if (price == null) return 'Enter a valid price';
+    if (price <= 0) return 'Price must be more than 0';
+    if (price >= 100000000) return 'Price is too high';
+    return null;
+  }
 }

@@ -59,6 +59,7 @@ class AuthService {
     return User.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
+  Future<String?> token() => _storage.read(key: _tokenKey);
   Future<void> logout() => _storage.delete(key: _tokenKey);
 }
 
