@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 
-import 'screens/dashboard_screen.dart';
+import 'screens/admin_shell.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
@@ -52,7 +52,7 @@ class _AuthGateState extends State<AuthGate> {
         }
         final user = snapshot.data;
         if (user == null) return const LoginScreen();
-        return DashboardScreen(user: user);
+        return AdminShell(user: user);
       },
     );
   }

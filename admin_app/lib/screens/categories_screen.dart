@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_models/shared_models.dart';
 
 import '../services/product_service.dart';
+import '../widgets/page_body.dart';
+import '../theme/app_theme.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -62,24 +64,33 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: Text('Add your first category to group your menu.'),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              96,
-            ), // room for the button
-            itemCount: categories.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  child: Text(category.name[0].toUpperCase()),
+          return PageBody(
+            maxWidth: 720,
+            bottomPadding: 96,
+            children: [
+              Card(
+                child: Column(
+                  children: [
+                    for (final (i, category) in categories.indexed) ...[
+                      if (i > 0) const Divider(),
+                      ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AdminColors.caramel.withValues(
+                            alpha: 0.15,
+                          ),
+                          foregroundColor: AdminColors.caramel,
+                          child: Text(category.name[0].toUpperCase()),
+                        ),
+                        title: Text(
+                          category.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                title: Text(category.name),
-              );
-            },
+              ),
+            ],
           );
         },
       ),

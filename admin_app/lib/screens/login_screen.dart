@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 import '../services/auth_service.dart';
 import '../widgets/scale_page_route.dart';
-import 'dashboard_screen.dart';
+import 'admin_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       Navigator.of(
         context,
-      ).pushReplacement(ScalePageRoute(page: DashboardScreen(user: user)));
+      ).pushReplacement(ScalePageRoute(page: AdminShell(user: user)));
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {

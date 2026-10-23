@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_models/shared_models.dart';
 
 import '../services/product_service.dart';
+import '../widgets/page_body.dart';
+import '../widgets/page_body.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -78,8 +80,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget _buildForm(List<ProductCategory> categories) {
     return Form(
       key: _formKey,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
+      child: PageBody(
+        maxWidth: 560, // forms read best narrow
         children: [
           TextFormField(
             controller: _nameController,

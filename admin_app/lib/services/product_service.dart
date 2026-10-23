@@ -11,7 +11,28 @@ class ApiException implements Exception {
   final String message;
 }
 
+/// Products + categories, loaded together.
+typedef MenuData = ({List<Product> products, List<ProductCategory> categories});
+
 class ProductService {
+  Future<List<Product>> fetchProducts() async {
+    final response = await http.get(Uri.parse('$apiBaseUrl/products'));
+    if (response.statusCode != 200) throw _error(response);
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => Product.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Both requests at the same time; used by Overview and Products.
+  Future<MenuData> fetchMenu() async {
+    final (products, categories) = await (
+      fetchProducts(),
+      fetchCategories(),
+    ).wait;
+    return (products: products, categories: categories);
+  }
+
   Future<List<ProductCategory>> fetchCategories() async {
     final response = await http.get(Uri.parse('$apiBaseUrl/categories'));
     if (response.statusCode != 200) throw _error(response);
