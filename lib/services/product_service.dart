@@ -16,6 +16,17 @@ class ProductService {
         .map((e) => Product.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<List<ProductCategory>> fetchCategories() async {
+    final response = await http.get(Uri.parse('$apiBaseUrl/categories'));
+    if (response.statusCode != 200) {
+      throw Exception('Could not load categories (${response.statusCode})');
+    }
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => ProductCategory.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 }
 
 final productService = ProductService();

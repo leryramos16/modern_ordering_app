@@ -38,6 +38,7 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   shared_models:
     path: packages/shared_models
+  google_fonts: ^8.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
