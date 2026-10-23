@@ -23,4 +23,15 @@ class CategoryRepository {
     );
     return result.isNotEmpty;
   }
+
+  Future<ProductCategory> create(String name) async {
+    final result = await _db.execute(
+      Sql.named(
+        'INSERT INTO categories (name) VALUES (@name) RETURNING id, name',
+      ),
+      parameters: {'name': name},
+    );
+    final row = result.first.toColumnMap();
+    return ProductCategory(id: row['id'] as int, name: row['name'] as String);
+  }
 }

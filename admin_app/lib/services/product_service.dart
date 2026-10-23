@@ -21,6 +21,22 @@ class ProductService {
         .toList();
   }
 
+  Future<ProductCategory> createCategory(String name) async {
+    final token = await authService.token();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/admin/categories'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'name': name}),
+    );
+    if (response.statusCode != 201) throw _error(response);
+    return ProductCategory.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<Product> createProduct({
     required String name,
     required double price,

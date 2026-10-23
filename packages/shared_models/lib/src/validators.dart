@@ -53,4 +53,11 @@ class Validators {
     if (price >= 100000000) return 'Price is too high';
     return null;
   }
+
+  static String? categoryName(String? value) {
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) return 'Enter category name';
+    if (name.length > 100) return 'Name is too long (max 100 characters)';
+    return null;
+  }
 }

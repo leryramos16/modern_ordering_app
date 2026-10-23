@@ -4,6 +4,7 @@ import 'package:shared_models/shared_models.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'add_product_screen.dart';
+import 'categories_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, required this.user});
@@ -50,6 +51,14 @@ class DashboardScreen extends StatelessWidget {
                   );
                 }
               },
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.category_outlined),
+              label: const Text('Categories'),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CategoriesScreen()),
+              ),
             ),
           ],
         ),
