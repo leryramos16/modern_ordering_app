@@ -8,7 +8,7 @@ import '../utils/format.dart';
 import '../widgets/page_body.dart';
 import '../widgets/product_thumb.dart';
 import '../widgets/stat_card.dart';
-import 'add_product_screen.dart';
+import 'product_form_screen.dart';
 import 'login_screen.dart';
 
 class OverviewScreen extends StatefulWidget {
@@ -30,7 +30,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
   Future<void> _refresh() async {
     final future = productService.fetchMenu();
-    setState(() => _menuFuture = future);
+    setState(() {
+      _menuFuture = future;
+    });
     try {
       await future;
     } catch (_) {
@@ -48,13 +50,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 
   Future<void> _addProduct() async {
-    final added = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => const AddProductScreen()));
-    if (added == true && mounted) {
+    final message = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const ProductFormScreen()),
+    );
+    if (message != null && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Product added')));
+      ).showSnackBar(SnackBar(content: Text(message)));
       _refresh();
     }
   }

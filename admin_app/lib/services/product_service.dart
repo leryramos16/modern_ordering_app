@@ -28,7 +28,7 @@ class ProductService {
   /// Both requests at the same time; used by Overview and Products.
   Future<MenuData> fetchMenu() async {
     final (products, categories) = await (
-      fetchProducts(),
+      fetchAdminProducts(),
       fetchCategories(),
     ).wait;
     return (products: products, categories: categories);
@@ -110,6 +110,77 @@ class ProductService {
       return ApiException('Server error (${response.statusCode})');
     }
   }
+
+  /// Admin list: includes hidden products.
+  Future<List<Product>> fetchAdminProducts() async {
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/admin/products'),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 200) throw _error(response);
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => Product.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<Product> updateProduct({
+    required int id,
+    required String name,
+    required double price,
+    required int categoryId,
+    required bool isAvailable,
+    String? description,
+    String? imageUrl,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$apiBaseUrl/admin/products/$id'),
+      headers: await _authHeaders(),
+      body: jsonEncode({
+        'name': name,
+        'price': price,
+        'categoryId': categoryId,
+        'description': description,
+        'imageUrl': imageUrl,
+        'isAvailable': isAvailable,
+      }),
+    );
+    if (response.statusCode != 200) throw _error(response);
+    return Product.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteProduct(int id) async {
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/admin/products/$id'),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 204) throw _error(response);
+  }
+
+  Future<ProductCategory> updateCategory(int id, String name) async {
+    final response = await http.put(
+      Uri.parse('$apiBaseUrl/admin/categories/$id'),
+      headers: await _authHeaders(),
+      body: jsonEncode({'name': name}),
+    );
+    if (response.statusCode != 200) throw _error(response);
+    return ProductCategory.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  Future<void> deleteCategory(int id) async {
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/admin/categories/$id'),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 204) throw _error(response);
+  }
+
+  Future<Map<String, String>> _authHeaders() async => {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await authService.token()}',
+  };
 }
 
 final productService = ProductService();

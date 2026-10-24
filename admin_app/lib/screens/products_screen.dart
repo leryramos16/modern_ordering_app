@@ -7,7 +7,7 @@ import '../utils/format.dart';
 import '../widgets/page_body.dart';
 import '../widgets/product_thumb.dart';
 import '../widgets/status_chip.dart';
-import 'add_product_screen.dart';
+import 'product_form_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -22,20 +22,23 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Future<void> _refresh() async {
     final future = productService.fetchMenu();
-    setState(() => _menuFuture = future);
+    setState(() {
+      _menuFuture = future;
+    });
     try {
       await future;
     } catch (_) {}
   }
 
-  Future<void> _addProduct() async {
-    final added = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => const AddProductScreen()));
-    if (added == true && mounted) {
+  /// No product = add mode. A product = edit mode.
+  Future<void> _openForm([Product? product]) async {
+    final message = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => ProductFormScreen(product: product)),
+    );
+    if (message != null && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Product added')));
+      ).showSnackBar(SnackBar(content: Text(message)));
       _refresh();
     }
   }
@@ -45,7 +48,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Products')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addProduct,
+        onPressed: () => _openForm(),
         icon: const Icon(Icons.add),
         label: const Text('Add product'),
       ),
@@ -116,10 +119,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ? _TableRow(
                         product: product,
                         category: categoryNames[product.categoryId],
+                        onTap: () => _openForm(product),
                       )
                     : _ListRow(
                         product: product,
                         category: categoryNames[product.categoryId],
+                        onTap: () => _openForm(product),
                       ),
               ],
             ],
@@ -132,7 +137,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
 /// Phone: compact two-line rows.
 class _ListRow extends StatelessWidget {
-  const _ListRow({required this.product, required this.category});
+  const _ListRow({
+    required this.product,
+    required this.category,
+    required this.onTap,
+  });
+  final VoidCallback onTap;
 
   final Product product;
   final String? category;
@@ -140,6 +150,7 @@ class _ListRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: onTap,
       leading: ProductThumb(product: product),
       title: Text(
         product.name,
@@ -192,68 +203,76 @@ class _TableHeader extends StatelessWidget {
 }
 
 class _TableRow extends StatelessWidget {
-  const _TableRow({required this.product, required this.category});
+  const _TableRow({
+    required this.product,
+    required this.category,
+    required this.onTap,
+  });
 
   final Product product;
   final String? category;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 5,
-            child: Row(
-              children: [
-                ProductThumb(product: product, size: 40),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      if (product.description != null)
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 5,
+              child: Row(
+                children: [
+                  ProductThumb(product: product, size: 40),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          product.description!,
+                          product.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AdminColors.muted,
-                            fontSize: 13,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                    ],
+                        if (product.description != null)
+                          Text(
+                            product.description!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AdminColors.muted,
+                              fontSize: 13,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(flex: 2, child: Text(category ?? '—')),
-          Expanded(
-            flex: 2,
-            child: Text(
-              formatPrice(product.price),
-              textAlign:
-                  TextAlign.right, // numbers align right so digits line up
-              style: const TextStyle(fontWeight: FontWeight.w700),
+            Expanded(flex: 2, child: Text(category ?? '—')),
+            Expanded(
+              flex: 2,
+              child: Text(
+                formatPrice(product.price),
+                textAlign:
+                    TextAlign.right, // numbers align right so digits line up
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            flex: 2,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: StatusChip(available: product.isAvailable),
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 2,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: StatusChip(available: product.isAvailable),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

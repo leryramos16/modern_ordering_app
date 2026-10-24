@@ -3,8 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_models/shared_models.dart';
 
 import '../services/product_service.dart';
-import '../widgets/page_body.dart';
 import '../theme/app_theme.dart';
+import '../widgets/confirm_dialog.dart';
+import '../widgets/page_body.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -18,20 +19,48 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       .fetchCategories();
 
   void _refresh() {
-    setState(() => _categoriesFuture = productService.fetchCategories());
+    setState(() {
+      _categoriesFuture = productService.fetchCategories();
+    });
   }
 
-  Future<void> _openAddDialog() async {
-    // The dialog closes with the new category, or null if the admin cancelled.
-    final created = await showDialog<ProductCategory>(
-      context: context,
-      builder: (_) => const _AddCategoryDialog(),
-    );
-    if (created == null || !mounted) return;
+  void _showMessage(String message) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('"${created.name}" added')));
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// No category = add. A category = rename.
+  Future<void> _openDialog([ProductCategory? category]) async {
+    final saved = await showDialog<ProductCategory>(
+      context: context,
+      builder: (_) => _CategoryDialog(category: category),
+    );
+    if (saved == null || !mounted) return;
+    _showMessage(
+      category == null ? '"${saved.name}" added' : 'Renamed to "${saved.name}"',
+    );
     _refresh();
+  }
+
+  Future<void> _delete(ProductCategory category) async {
+    final confirmed = await confirmDelete(
+      context,
+      title: 'Delete ${category.name}?',
+      message: "This can't be undone.",
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      await productService.deleteCategory(category.id);
+      if (!mounted) return;
+      _showMessage('"${category.name}" deleted');
+      _refresh();
+    } on ApiException catch (e) {
+      if (mounted) _showMessage(e.message); // e.g. "still has 2 products…"
+    } on http.ClientException {
+      if (mounted) _showMessage('Could not reach the server');
+    }
   }
 
   @override
@@ -39,7 +68,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Categories')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openAddDialog,
+        onPressed: () => _openDialog(),
         icon: const Icon(Icons.add),
         label: const Text('Add category'),
       ),
@@ -85,6 +114,30 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           category.name,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
+                        trailing: PopupMenuButton<String>(
+                          tooltip: 'More',
+                          onSelected: (action) => action == 'rename'
+                              ? _openDialog(category)
+                              : _delete(category),
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                              value: 'rename',
+                              child: ListTile(
+                                leading: Icon(Icons.edit_outlined),
+                                title: Text('Rename'),
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: ListTile(
+                                leading: Icon(Icons.delete_outline),
+                                title: Text('Delete'),
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -98,18 +151,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 }
 
-class _AddCategoryDialog extends StatefulWidget {
-  const _AddCategoryDialog();
+class _CategoryDialog extends StatefulWidget {
+  const _CategoryDialog({this.category});
+
+  final ProductCategory? category; // null = add, otherwise rename
 
   @override
-  State<_AddCategoryDialog> createState() => _AddCategoryDialogState();
+  State<_CategoryDialog> createState() => _CategoryDialogState();
 }
 
-class _AddCategoryDialogState extends State<_AddCategoryDialog> {
+class _CategoryDialogState extends State<_CategoryDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   bool _saving = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text =
+        widget.category?.name ?? ''; // rename: start with the old name
+  }
 
   @override
   void dispose() {
@@ -126,13 +188,15 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
     });
 
     try {
-      final category = await productService.createCategory(
-        _nameController.text.trim(),
-      );
+      final name = _nameController.text.trim();
+      final category = widget.category;
+      final saved = category == null
+          ? await productService.createCategory(name)
+          : await productService.updateCategory(category.id, name);
       if (!mounted) return;
-      Navigator.of(context).pop(category); // hand the new category back
+      Navigator.of(context).pop(saved);
     } on ApiException catch (e) {
-      setState(() => _error = e.message); // e.g. "Rice Meals" already exists
+      setState(() => _error = e.message);
     } on http.ClientException {
       setState(() => _error = 'Could not reach the server');
     } finally {
@@ -143,18 +207,17 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('New category'),
+      title: Text(widget.category == null ? 'New category' : 'Rename category'),
       content: Form(
         key: _formKey,
         child: TextFormField(
           controller: _nameController,
-          autofocus: true, // keyboard opens right away
-          textCapitalization:
-              TextCapitalization.words, // "rice meals" → "Rice Meals"
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(
             labelText: 'Name',
             hintText: 'Rice Meals',
-            errorText: _error, // the server's message shows under the field
+            errorText: _error,
           ),
           validator: Validators.categoryName,
           onFieldSubmitted: (_) => _save(),
@@ -166,9 +229,6 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          // Your theme makes FilledButtons full-width (Size.fromHeight).
-          // Inside a dialog that breaks the layout, so give this one a normal size.
-          style: FilledButton.styleFrom(minimumSize: const Size(88, 44)),
           onPressed: _saving ? null : _save,
           child: Text(_saving ? 'Saving…' : 'Save'),
         ),

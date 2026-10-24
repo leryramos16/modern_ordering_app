@@ -24,6 +24,34 @@ class CategoryRepository {
     return result.isNotEmpty;
   }
 
+  Future<ProductCategory?> update(int id, String name) async {
+    final result = await _db.execute(
+      Sql.named(
+        'UPDATE categories SET name = @name WHERE id = @id RETURNING id, name',
+      ),
+      parameters: {'id': id, 'name': name},
+    );
+    if (result.isEmpty) return null;
+    final row = result.first.toColumnMap();
+    return ProductCategory(id: row['id'] as int, name: row['name'] as String);
+  }
+
+  Future<int> productCount(int id) async {
+    final result = await _db.execute(
+      Sql.named('SELECT count(*) AS n FROM products WHERE category_id = @id'),
+      parameters: {'id': id},
+    );
+    return result.first.toColumnMap()['n'] as int;
+  }
+
+  Future<bool> delete(int id) async {
+    final result = await _db.execute(
+      Sql.named('DELETE FROM categories WHERE id = @id'),
+      parameters: {'id': id},
+    );
+    return result.affectedRows > 0;
+  }
+
   Future<ProductCategory> create(String name) async {
     final result = await _db.execute(
       Sql.named(

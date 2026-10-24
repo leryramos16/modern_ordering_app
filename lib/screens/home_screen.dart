@@ -38,7 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refresh() async {
     final future = _loadMenu();
-    setState(() => _menuFuture = future);
+    setState(() {
+      _menuFuture = future;
+    });
     try {
       await future;
     } catch (_) {
