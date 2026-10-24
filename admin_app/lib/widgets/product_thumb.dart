@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
+import '../utils/image_url.dart';
 
 class ProductThumb extends StatelessWidget {
   const ProductThumb({super.key, required this.product, this.size = 44});
@@ -17,7 +18,7 @@ class ProductThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = product.imageUrl;
+    final url = fullImageUrl(product.imageUrl);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: SizedBox.square(

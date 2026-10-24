@@ -5,6 +5,7 @@ import 'package:shared_models/shared_models.dart';
 
 import '../config.dart';
 import 'auth_service.dart';
+import 'dart:typed_data';
 
 class ApiException implements Exception {
   ApiException(this.message);
@@ -63,6 +64,7 @@ class ProductService {
     required double price,
     required int categoryId,
     String? description,
+    String? imageUrl,
   }) async {
     final token = await authService.token();
     final response = await http.post(
@@ -76,10 +78,27 @@ class ProductService {
         'price': price,
         'categoryId': categoryId,
         'description': description,
+        'imageUrl': imageUrl,
       }),
     );
     if (response.statusCode != 201) throw _error(response);
     return Product.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  /// Sends the photo; returns where the server saved it, e.g. "/uploads/abc.jpg".
+  Future<String> uploadImage(Uint8List bytes, String fileName) async {
+    final token = await authService.token();
+    final request =
+        http.MultipartRequest('POST', Uri.parse('$apiBaseUrl/admin/uploads'))
+          ..headers['Authorization'] = 'Bearer $token'
+          ..files.add(
+            http.MultipartFile.fromBytes('image', bytes, filename: fileName),
+          );
+
+    final response = await http.Response.fromStream(await request.send());
+    if (response.statusCode != 201) throw _error(response);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return data['url'] as String;
   }
 
   /// Reads {"error": "..."} if the server sent JSON; never crashes on plain text.

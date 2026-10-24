@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_models/shared_models.dart';
+import '../utils/image_url.dart';
 
 class ProductImage extends StatelessWidget {
   const ProductImage({super.key, required this.product, this.radius = 18});
@@ -18,7 +19,7 @@ class ProductImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = product.imageUrl;
+    final url = fullImageUrl(product.imageUrl);
     // Material(transparency) stops ugly yellow underlines on text during Hero animations.
     return Material(
       type: MaterialType.transparency,
@@ -30,6 +31,8 @@ class ProductImage extends StatelessWidget {
                 fit: BoxFit.cover,
                 width: double.infinity,
                 errorBuilder: (_, _, _) => _placeholder(),
+                loadingBuilder: (context, child, progress) =>
+                    progress == null ? child : _placeholder(),
               )
             : _placeholder(),
       ),

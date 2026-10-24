@@ -15,11 +15,14 @@ Future<Response> onRequest(RequestContext context) async {
   final description = (body['description'] as String? ?? '').trim();
   final priceText = body['price']?.toString();
   final categoryId = body['categoryId'] as int?;
+  final imageUrl = (body['imageUrl'] as String? ?? '').trim();
 
   final error =
       Validators.productName(name) ??
       Validators.price(priceText) ??
-      (categoryId == null ? 'Choose a category' : null);
+      (categoryId == null ? 'Choose a category' : null) ??
+      _imageUrlError(imageUrl);
+
   if (error != null) return _badRequest(error);
 
   if (!await context.read<CategoryRepository>().exists(categoryId!)) {
@@ -31,6 +34,7 @@ Future<Response> onRequest(RequestContext context) async {
     name: name,
     price: double.parse(priceText!),
     description: description.isEmpty ? null : description,
+    imageUrl: imageUrl.isEmpty ? null : imageUrl,
   );
 
   return Response.json(statusCode: HttpStatus.created, body: product.toJson());
@@ -40,3 +44,11 @@ Response _badRequest(String error) => Response.json(
   statusCode: HttpStatus.badRequest,
   body: {'error': error},
 );
+
+String? _imageUrlError(String url) {
+  if (url.isEmpty) return null;
+  if (!url.startsWith('/uploads/') || url.contains('..') || url.length > 255) {
+    return 'Invalid image';
+  }
+  return null;
+}
