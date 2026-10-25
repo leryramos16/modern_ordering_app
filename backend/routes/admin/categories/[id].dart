@@ -7,8 +7,9 @@ import 'package:shared_models/shared_models.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   final categoryId = int.tryParse(id);
-  if (categoryId == null)
+  if (categoryId == null) {
     return _error(HttpStatus.badRequest, 'Invalid category id');
+  }
 
   return switch (context.request.method) {
     HttpMethod.put => _rename(context, categoryId),
@@ -26,8 +27,9 @@ Future<Response> _rename(RequestContext context, int id) async {
 
   try {
     final category = await context.read<CategoryRepository>().update(id, name);
-    if (category == null)
+    if (category == null) {
       return _error(HttpStatus.notFound, 'Category not found');
+    }
     return Response.json(body: category.toJson());
   } on ServerException catch (e) {
     if (e.code == '23505') {

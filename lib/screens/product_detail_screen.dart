@@ -4,6 +4,8 @@ import 'package:shared_models/shared_models.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/product_image.dart';
+import '../services/cart.dart';
+import 'cart_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   const ProductDetailScreen({
@@ -39,7 +41,8 @@ class ProductDetailScreen extends StatelessWidget {
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
-                tag: 'product-${product.id}', // same tag as the card → it "flies" here
+                tag:
+                    'product-${product.id}', // same tag as the card → it "flies" here
                 child: ProductImage(product: product, radius: 0),
               ),
             ),
@@ -73,7 +76,8 @@ class ProductDetailScreen extends StatelessWidget {
                     product.description ?? 'No description yet.',
                     style: textTheme.bodyLarge?.copyWith(
                       color: AppColors.muted,
-                      height: 1.6, // line spacing makes paragraphs easier to read
+                      height:
+                          1.6, // line spacing makes paragraphs easier to read
                     ),
                   ),
                 ],
@@ -86,9 +90,22 @@ class ProductDetailScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
           child: FilledButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Cart is coming soon')),
-            ),
+            onPressed: () {
+              cart.add(product);
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text('${product.name} added to your order'),
+                    action: SnackBarAction(
+                      label: 'View cart',
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CartScreen()),
+                      ),
+                    ),
+                  ),
+                );
+            },
             child: Text('Add to order · ${formatPrice(product.price)}'),
           ),
         ),

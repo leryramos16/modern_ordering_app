@@ -8,5 +8,6 @@ export 'src/user.dart';
 export 'src/validators.dart';
 export 'src/roles.dart';
 export 'src/category.dart';
+export 'src/order.dart';
 
 // TODO: Export any libraries intended for clients of this package.

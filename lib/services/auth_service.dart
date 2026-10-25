@@ -15,6 +15,8 @@ class AuthService {
   static const _tokenKey = 'auth_token';
   final _storage = const FlutterSecureStorage();
 
+  Future<String?> token() => _storage.read(key: _tokenKey);
+
   Future<User> login(String email, String password) {
     return _authenticate('/auth/login', {'email': email, 'password': password});
   }

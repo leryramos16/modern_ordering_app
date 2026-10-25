@@ -8,8 +8,9 @@ import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   final productId = int.tryParse(id); // "/admin/products/abc" → null
-  if (productId == null)
+  if (productId == null) {
     return _error(HttpStatus.badRequest, 'Invalid product id');
+  }
 
   return switch (context.request.method) {
     HttpMethod.put => _update(context, productId),

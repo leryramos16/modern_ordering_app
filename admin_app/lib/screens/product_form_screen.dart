@@ -189,8 +189,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   /// New photo (from memory) > saved photo (from server) > nothing.
   Widget? _preview() {
-    if (_imageBytes != null)
+    if (_imageBytes != null) {
       return Image.memory(_imageBytes!, fit: BoxFit.cover);
+    }
     final url = fullImageUrl(_existingImageUrl);
     if (url != null) return Image.network(url, fit: BoxFit.cover);
     return null;

@@ -9,6 +9,9 @@ import '../widgets/product_card.dart';
 import '../widgets/product_grid_skeleton.dart';
 import 'login_screen.dart';
 import 'product_detail_screen.dart';
+import '../services/cart.dart';
+import '../widgets/cart_bar.dart';
+import 'cart_screen.dart';
 
 /// Products and categories, loaded together.
 typedef Menu = ({List<Product> products, List<ProductCategory> categories});
@@ -36,6 +39,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return (products: products, categories: categories);
   }
 
+  void _addToCart(Product product) {
+    cart.add(product);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar() // tapping + quickly shouldn't stack up messages
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${product.name} added'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+  }
+
+  void _openCart() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const CartScreen()));
+  }
+
   Future<void> _refresh() async {
     final future = _loadMenu();
     setState(() {
@@ -49,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _logout(BuildContext context) async {
+    cart.clear(); // the next person on this phone shouldn't see your cart
     await authService.logout();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -78,6 +100,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: ListenableBuilder(
+        listenable: cart,
+        builder: (context, _) =>
+            cart.isEmpty ? const SizedBox.shrink() : CartBar(onTap: _openCart),
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refresh,
@@ -194,6 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                onAdd: () => _addToCart(product),
               );
             },
           ),

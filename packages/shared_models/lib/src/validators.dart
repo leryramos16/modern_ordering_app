@@ -60,4 +60,28 @@ class Validators {
     if (name.length > 100) return 'Name is too long (max 100 characters)';
     return null;
   }
+
+  static String? address(String? value) {
+    final address = value?.trim() ?? '';
+    if (address.isEmpty) return 'Enter your delivery address';
+    if (address.length < 10) return 'Add more detail: street, barangay, city';
+    if (address.length > 255) return 'Address is too long';
+    return null;
+  }
+
+  /// Philippine mobile numbers: 09171234567 or +639171234567 (spaces/dashes OK).
+  static String? phone(String? value) {
+    final digits = (value ?? '').replaceAll(RegExp(r'[\s-]'), '');
+    if (!RegExp(r'^(\+63|0)9\d{9}$').hasMatch(digits)) {
+      return 'Enter a valid mobile number, e.g. 0917 123 4567';
+    }
+    return null;
+  }
+
+  static String? notes(String? value) {
+    if ((value ?? '').trim().length > 255) {
+      return 'Notes are too long (max 255)';
+    }
+    return null;
+  }
 }

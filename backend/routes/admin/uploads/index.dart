@@ -42,8 +42,9 @@ Future<Response> onRequest(RequestContext context) async {
 
 /// Every image format starts with special "magic bytes". Check them.
 String? _imageExtension(List<int> b) {
-  if (b.length > 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF)
+  if (b.length > 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF) {
     return 'jpg';
+  }
   if (b.length > 8 &&
       b[0] == 0x89 &&
       b[1] == 0x50 &&

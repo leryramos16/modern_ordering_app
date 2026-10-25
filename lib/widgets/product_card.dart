@@ -14,10 +14,16 @@ const productGridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
 );
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.product, required this.onTap});
+  const ProductCard({
+    super.key,
+    required this.product,
+    required this.onTap,
+    required this.onAdd,
+  });
 
   final Product product;
   final VoidCallback onTap;
+  final VoidCallback onAdd; // tapping +
 
   @override
   Widget build(BuildContext context) {
@@ -68,17 +74,21 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.espresso,
+                  Material(
+                    color: AppColors.espresso,
+                    borderRadius: BorderRadius.circular(10),
+                    child: InkWell(
                       borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.add_rounded,
-                      color: AppColors.cream,
-                      size: 20,
+                      onTap: onAdd,
+                      child: const SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Icon(
+                          Icons.add_rounded,
+                          color: AppColors.cream,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
                 ],

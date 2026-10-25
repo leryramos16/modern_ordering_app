@@ -1,7 +1,6 @@
+import 'package:backend/product_input.dart';
 import 'package:postgres/postgres.dart';
 import 'package:shared_models/shared_models.dart';
-
-import 'package:backend/product_input.dart';
 
 class ProductRepository {
   ProductRepository(this._db);
