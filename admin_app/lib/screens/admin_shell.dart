@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import 'categories_screen.dart';
 import 'overview_screen.dart';
 import 'products_screen.dart';
+import 'orders_screen.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key, required this.user});
@@ -26,6 +27,11 @@ class _AdminShellState extends State<AdminShell> {
       label: 'Overview',
     ),
     (
+      icon: Icons.receipt_long_outlined,
+      selected: Icons.receipt_long,
+      label: 'Orders',
+    ),
+    (
       icon: Icons.inventory_2_outlined,
       selected: Icons.inventory_2,
       label: 'Products',
@@ -41,7 +47,8 @@ class _AdminShellState extends State<AdminShell> {
 
   Widget _page() => switch (_index) {
     0 => OverviewScreen(user: widget.user, onNavigate: _goTo),
-    1 => const ProductsScreen(),
+    1 => const OrdersScreen(),
+    2 => const ProductsScreen(),
     _ => const CategoriesScreen(),
   };
 

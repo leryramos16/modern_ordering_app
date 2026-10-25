@@ -10,6 +10,7 @@ import '../widgets/product_thumb.dart';
 import '../widgets/stat_card.dart';
 import 'product_form_screen.dart';
 import 'login_screen.dart';
+import '../services/order_service.dart';
 
 class OverviewScreen extends StatefulWidget {
   const OverviewScreen({
@@ -26,18 +27,19 @@ class OverviewScreen extends StatefulWidget {
 }
 
 class _OverviewScreenState extends State<OverviewScreen> {
-  late Future<MenuData> _menuFuture = productService.fetchMenu();
+  late Future<(MenuData, List<Order>)> _future = _load();
+
+  Future<(MenuData, List<Order>)> _load() =>
+      (productService.fetchMenu(), orderService.fetchOrders()).wait;
 
   Future<void> _refresh() async {
-    final future = productService.fetchMenu();
+    final future = _load();
     setState(() {
-      _menuFuture = future;
+      _future = future;
     });
     try {
       await future;
-    } catch (_) {
-      // the FutureBuilder shows the error
-    }
+    } catch (_) {}
   }
 
   Future<void> _logout() async {
@@ -108,8 +110,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
-        child: FutureBuilder<MenuData>(
-          future: _menuFuture,
+        child: FutureBuilder<(MenuData, List<Order>)>(
+          future: _future,
           builder: (context, snapshot) {
             return PageBody(
               children: [
@@ -128,7 +130,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 ),
                 const SizedBox(height: 20),
                 if (snapshot.hasData)
-                  ..._buildContent(snapshot.data!)
+                  ..._buildContent(snapshot.data!.$1, snapshot.data!.$2)
                 else if (snapshot.hasError)
                   Center(
                     child: TextButton.icon(
@@ -152,7 +154,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  List<Widget> _buildContent(MenuData menu) {
+  List<Widget> _buildContent(MenuData menu, List<Order> orders) {
+    final now = DateTime.now();
+    final ordersToday = orders.where((o) {
+      final t = o.createdAt.toLocal();
+      return t.year == now.year &&
+          t.month == now.month &&
+          t.day == now.day &&
+          o.status != OrderStatus.cancelled;
+    }).length;
+    final waiting = orders.where((o) => o.status == OrderStatus.pending).length;
     final products = menu.products;
     final average = products.isEmpty
         ? null
@@ -182,12 +193,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
             value: average == null ? '—' : formatPrice(average),
             color: AdminColors.espresso,
           ),
-          const StatCard(
+          StatCard(
             icon: Icons.receipt_long_outlined,
             label: 'Orders today',
-            value: '—',
-            hint: 'Coming with checkout',
-            color: AdminColors.muted,
+            value: '$ordersToday',
+            hint: waiting > 0 ? '$waiting waiting for you' : 'All caught up',
+            color: AdminColors.caramel,
           ),
         ],
       ),
@@ -202,7 +213,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
             label: const Text('Add product'),
           ),
           OutlinedButton.icon(
-            onPressed: () => widget.onNavigate(2),
+            onPressed: () => widget.onNavigate(3),
             icon: const Icon(Icons.category_outlined),
             label: const Text('Manage categories'),
           ),
@@ -219,7 +230,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ),
           const Spacer(),
           TextButton(
-            onPressed: () => widget.onNavigate(1),
+            onPressed: () => widget.onNavigate(2),
             child: const Text('View all'),
           ),
         ],

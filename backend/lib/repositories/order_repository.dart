@@ -103,4 +103,99 @@ class OrderRepository {
       );
     });
   }
+
+  static const _orderColumns =
+      'o.id, o.status, o.total, o.notes, o.delivery_address, o.contact_phone, '
+      'o.created_at, u.name AS customer_name';
+
+  /// Newest first. (Later, with thousands of orders, you'd add pages.)
+  Future<List<Order>> findRecent({int limit = 100}) =>
+      _find('ORDER BY o.created_at DESC LIMIT @limit', {'limit': limit});
+
+  Future<Order?> findById(int id) async {
+    final orders = await _find('WHERE o.id = @id', {'id': id});
+    return orders.isEmpty ? null : orders.first;
+  }
+
+  /// Changes the status ONLY if it's still [from].
+  /// Returns false if someone else changed it first.
+  Future<bool> updateStatus(
+    int id, {
+    required String from,
+    required String to,
+  }) async {
+    final result = await _db.execute(
+      Sql.named(
+        'UPDATE orders SET status = @to WHERE id = @id AND status = @from',
+      ),
+      parameters: {'id': id, 'from': from, 'to': to},
+    );
+    return result.affectedRows > 0;
+  }
+
+  /// [clause] is always written by US in this file, never by a user.
+  Future<List<Order>> _find(
+    String clause,
+    Map<String, Object?> parameters,
+  ) async {
+    // Query 1: the orders, with the customer's name (JOIN users).
+    final orderRows = await _db.execute(
+      Sql.named(
+        'SELECT $_orderColumns FROM orders o '
+        'JOIN users u ON u.id = o.user_id $clause',
+      ),
+      parameters: parameters,
+    );
+    if (orderRows.isEmpty) return [];
+
+    // Query 2: ALL items of ALL those orders at once, with product names.
+    final ids = [for (final row in orderRows) row.toColumnMap()['id'] as int];
+    final itemRows = await _db.execute(
+      Sql.named(
+        'SELECT oi.order_id, oi.product_id, p.name, oi.quantity, oi.unit_price '
+        'FROM order_items oi JOIN products p ON p.id = oi.product_id '
+        'WHERE oi.order_id = ANY(@ids) ORDER BY oi.id',
+      ),
+      parameters: {'ids': TypedValue(Type.integerArray, ids)},
+    );
+
+    // Group the items by their order id.
+    final itemsByOrder = <int, List<OrderItem>>{};
+    for (final row in itemRows) {
+      final m = row.toColumnMap();
+      itemsByOrder
+          .putIfAbsent(m['order_id'] as int, () => [])
+          .add(
+            OrderItem(
+              productId: m['product_id'] as int,
+              productName: m['name'] as String,
+              quantity: m['quantity'] as int,
+              unitPrice: double.parse(m['unit_price'].toString()),
+            ),
+          );
+    }
+
+    return [
+      for (final row in orderRows)
+        _orderFromRow(row.toColumnMap(), itemsByOrder),
+    ];
+  }
+
+  Order _orderFromRow(
+    Map<String, dynamic> m,
+    Map<int, List<OrderItem>> itemsByOrder,
+  ) {
+    final id = m['id'] as int;
+    return Order(
+      id: id,
+      status: m['status'] as String,
+      total: double.parse(m['total'].toString()),
+      deliveryAddress: m['delivery_address'] as String,
+      contactPhone: m['contact_phone'] as String,
+      notes: m['notes'] as String?,
+      createdAt: m['created_at'] as DateTime,
+      customerName: m['customer_name'] as String,
+      items: itemsByOrder[id] ?? const [],
+    );
+  }
 }

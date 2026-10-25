@@ -36,6 +36,7 @@ class Order {
     required this.createdAt,
     required this.items,
     this.notes,
+    this.customerName,
   });
 
   final int id;
@@ -44,6 +45,7 @@ class Order {
   final String deliveryAddress;
   final String contactPhone;
   final String? notes;
+  final String? customerName;
   final DateTime createdAt;
   final List<OrderItem> items;
 
@@ -54,6 +56,7 @@ class Order {
     deliveryAddress: json['deliveryAddress'] as String,
     contactPhone: json['contactPhone'] as String,
     notes: json['notes'] as String?,
+    customerName: json['customerName'] as String?,
     createdAt: DateTime.parse(json['createdAt'] as String),
     items: (json['items'] as List<dynamic>)
         .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
@@ -67,6 +70,7 @@ class Order {
     'deliveryAddress': deliveryAddress,
     'contactPhone': contactPhone,
     'notes': notes,
+    'customerName': customerName,
     'createdAt': createdAt.toIso8601String(), // dates travel as text in JSON
     'items': items.map((i) => i.toJson()).toList(),
   };

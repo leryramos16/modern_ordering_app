@@ -9,5 +9,6 @@ export 'src/validators.dart';
 export 'src/roles.dart';
 export 'src/category.dart';
 export 'src/order.dart';
+export 'src/order_status.dart';
 
 // TODO: Export any libraries intended for clients of this package.
