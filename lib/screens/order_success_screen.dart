@@ -3,6 +3,7 @@ import 'package:shared_models/shared_models.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import 'my_orders_screen.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   const OrderSuccessScreen({super.key, required this.order});
@@ -82,6 +83,16 @@ class OrderSuccessScreen extends StatelessWidget {
                 FilledButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Back to menu'),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
+                    ),
+                    child: const Text('Track my order'),
+                  ),
                 ),
               ],
             ),

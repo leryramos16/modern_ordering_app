@@ -8,10 +8,21 @@ const _maxQuantity = 20; // per product
 const _maxLines = 50; // different products per order
 
 Future<Response> onRequest(RequestContext context) async {
-  if (context.request.method != HttpMethod.post) {
-    return Response(statusCode: HttpStatus.methodNotAllowed);
-  }
+  return switch (context.request.method) {
+    HttpMethod.get => _list(context),
+    HttpMethod.post => _create(context),
+    _ => Future.value(Response(statusCode: HttpStatus.methodNotAllowed)),
+  };
+}
 
+/// The logged-in customer's OWN orders. Never anyone else's.
+Future<Response> _list(RequestContext context) async {
+  final user = context.read<User>();
+  final orders = await context.read<OrderRepository>().findForUser(user.id);
+  return Response.json(body: orders.map((o) => o.toJson()).toList());
+}
+
+Future<Response> _create(RequestContext context) async {
   final body = await context.request.json() as Map<String, dynamic>;
   final address = (body['deliveryAddress'] as String? ?? '').trim();
   final phone = (body['contactPhone'] as String? ?? '').trim();

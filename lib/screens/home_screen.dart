@@ -12,6 +12,8 @@ import 'product_detail_screen.dart';
 import '../services/cart.dart';
 import '../widgets/cart_bar.dart';
 import 'cart_screen.dart';
+import '../widgets/app_drawer.dart';
+import 'my_orders_screen.dart';
 
 /// Products and categories, loaded together.
 typedef Menu = ({List<Product> products, List<ProductCategory> categories});
@@ -26,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   late Future<Menu> _menuFuture = _loadMenu();
   int? _selectedCategoryId; // null = All
   String _search = '';
@@ -37,6 +40,13 @@ class _HomeScreenState extends State<HomeScreen> {
       productService.fetchCategories(),
     ).wait;
     return (products: products, categories: categories);
+  }
+
+  void _openMyOrders() {
+    Navigator.of(context).pop(); // close the drawer first
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const MyOrdersScreen()));
   }
 
   void _addToCart(Product product) {
@@ -100,6 +110,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: AppDrawer(
+        user: widget.user,
+        onMyOrders: _openMyOrders,
+        onLogout: () => _logout(context),
+      ),
       bottomNavigationBar: ListenableBuilder(
         listenable: cart,
         builder: (context, _) =>
@@ -148,6 +164,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                IconButton.filledTonal(
+                  tooltip: 'Menu',
+                  icon: const Icon(Icons.menu_rounded),
+                  onPressed: () => _scaffoldKey.currentState!.openDrawer(),
+                ),
+                const SizedBox(width: 12),
                 Text(
                   '${_greeting()}, $firstName',
                   style: textTheme.bodyLarge?.copyWith(color: AppColors.muted),
@@ -160,11 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          IconButton.filledTonal(
-            tooltip: 'Log out',
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () => _logout(context),
-          ),
         ],
       ),
     );
@@ -172,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.fromLTRB(12, 16, 20, 4),
       child: TextField(
         onChanged: (value) => setState(() => _search = value),
         decoration: const InputDecoration(

@@ -41,6 +41,17 @@ class OrderService {
     return Order.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
+  Future<List<Order>> fetchMyOrders() async {
+    final token = await authService.token();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/orders'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200) throw _error(response);
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list.map((e) => Order.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
   /// Reads {"error": "..."} if the server sent JSON; never crashes on plain text.
   ApiException _error(http.Response response) {
     try {

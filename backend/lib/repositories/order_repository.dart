@@ -112,6 +112,12 @@ class OrderRepository {
   Future<List<Order>> findRecent({int limit = 100}) =>
       _find('ORDER BY o.created_at DESC LIMIT @limit', {'limit': limit});
 
+  /// One customer's own orders, newest first.
+  Future<List<Order>> findForUser(int userId, {int limit = 50}) => _find(
+    'WHERE o.user_id = @userId ORDER BY o.created_at DESC LIMIT @limit',
+    {'userId': userId, 'limit': limit},
+  );
+
   Future<Order?> findById(int id) async {
     final orders = await _find('WHERE o.id = @id', {'id': id});
     return orders.isEmpty ? null : orders.first;
